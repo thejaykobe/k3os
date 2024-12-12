@@ -3,7 +3,7 @@ apiVersion: upgrade.cattle.io/v1
 kind: Plan
 metadata:
   # This `name` should be short but descriptive.
-  name: k3os-latest
+  name: k3os-%BRANCH%
   # The same `namespace` as is used for the system-upgrade-controller Deployment.
   namespace: k3os-system
 spec:
