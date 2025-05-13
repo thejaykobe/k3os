@@ -1,6 +1,6 @@
 
-![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/BlueKrypto/k3os)
-![GitHub release (latest SemVer including pre-releases)](https://img.shields.io/github/v/release/BlueKrypto/k3os?include_prereleases&label=release&sort=semver)
+![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/thejaykobe/k3os)
+![GitHub release (latest SemVer including pre-releases)](https://img.shields.io/github/v/release/thejaykobe/k3os?include_prereleases&label=release&sort=semver)
 
 > # :warning: Notice:
 > This project is about to get some major changes. As many of you are aware k3s currently maintains kubernetes version 1.24, 1.25, 1.26, 1.27, and 1.28. To this point this project has been on 1.24 since I have taken over the project. I currently working on a way to support multiple version and as such will be making changes in the near future. As part of this I will be attempting to update the docs. Some of these changes include (but are not limited to):
@@ -131,7 +131,7 @@ partitions and file system automatically, or you can create them manually if you
 
 ### Bootstrapped Installation
 
-You can install k3OS to a block device from any modern Linux distribution. Just download and run [install.sh](https://raw.githubusercontent.com/BlueKrypto/k3os/master/install.sh).
+You can install k3OS to a block device from any modern Linux distribution. Just download and run [install.sh](https://raw.githubusercontent.com/thejaykobe/k3os/master/install.sh).
 This script will run the same installation as the ISO but is a bit more raw and will not prompt for configuration.
 
 ```
@@ -171,7 +171,7 @@ on the path instead of `grub-mkrescue`.*
 
 ### Takeover Installation
 
-A special mode of installation is designed to install to a current running Linux system. This only works on ARM64 and x86_64. Download [install.sh](https://raw.githubusercontent.com/BlueKrypto/k3os/master/install.sh)
+A special mode of installation is designed to install to a current running Linux system. This only works on ARM64 and x86_64. Download [install.sh](https://raw.githubusercontent.com/thejaykobe/k3os/master/install.sh)
 and run with the `--takeover` flag. This will install k3OS to the current root and override the grub.cfg. After you reboot the system k3OS will then delete all files on the root partition that are not k3OS and then shutdown. This mode is particularly handy when creating cloud images. This way you can use an existing base image like Ubuntu and install k3OS over the top, snapshot, and create a new image.
 
 In order for this to work a couple of assumptions are made. First the root (/) is assumed to be an ext4 partition. Also it is assumed that grub2 is installed and looking for the configuration at `/boot/grub/grub.cfg`. When running `--takeover` ensure that you also set `--no-format` and DEVICE must be set to the partition of `/`. Refer to the AWS packer template to see this mode in action. Below is any example of how to run a takeover installation.
@@ -208,8 +208,8 @@ Kubernetes. The configuration file is found at
 
 ```
 /k3os/system/config.yaml
-/var/lib/BlueKrypto/k3os/config.yaml
-/var/lib/BlueKrypto/k3os/config.d/*
+/var/lib/thejaykobe/k3os/config.yaml
+/var/lib/thejaykobe/k3os/config.d/*
 ```
 
 The `/k3os/system/config.yaml` file is reserved for the system installation and should not be
@@ -217,7 +217,7 @@ modified on a running system. This file is usually populated by during the image
 installation process and contains important bootstrap information (such as networking or cloud-init
 data sources).
 
-The `/var/lib/BlueKrypto/k3os/config.yaml` or `config.d/*` files are intended to be used at runtime.
+The `/var/lib/thejaykobe/k3os/config.yaml` or `config.d/*` files are intended to be used at runtime.
 These files can be manipulated manually, through scripting, or managed with the Kubernetes operator.
 
 ### Sample `config.yaml`
@@ -370,9 +370,9 @@ the system upgrade controller to upgrade your k3OS by following these steps:
 
 ```shell script
 # apply the system-upgrade-controller manifest (once per cluster)
-kubectl apply -f https://raw.githubusercontent.com/BlueKrypto/k3os/v0.10.0/overlay/share/rancher/k3s/server/manifests/system-upgrade-controller.yaml
+kubectl apply -f https://raw.githubusercontent.com/thejaykobe/k3os/v0.10.0/overlay/share/rancher/k3s/server/manifests/system-upgrade-controller.yaml
 # after the system-upgrade-controller pod is Ready, apply the plan manifest (once per cluster)
-kubectl apply -f https://raw.githubusercontent.com/BlueKrypto/k3os/v0.10.0/overlay/share/rancher/k3s/server/manifests/system-upgrade-plans/k3os-latest.yaml
+kubectl apply -f https://raw.githubusercontent.com/thejaykobe/k3os/v0.10.0/overlay/share/rancher/k3s/server/manifests/system-upgrade-plans/k3os-latest.yaml
 # apply the `plan.upgrade.cattle.io/k3os-latest` label as described above (for every k3OS node), e.g.
 kubectl label nodes -l k3os.io/mode plan.upgrade.cattle.io/k3os-latest=enabled # this should work on any cluster with k3OS installations at v0.7.0 or greater
 ```
@@ -385,15 +385,15 @@ When using an overlay install such as on Raspberry Pi (see [ARM Overlay Installa
 
 ```bash
 export K3OS_VERSION=v0.10.0
-/usr/share/BlueKrypto/k3os/scripts/k3os-upgrade-rootfs
-/usr/share/BlueKrypto/k3os/scripts/k3os-upgrade-kernel
+/usr/share/thejaykobe/k3os/scripts/k3os-upgrade-rootfs
+/usr/share/thejaykobe/k3os/scripts/k3os-upgrade-kernel
 ```
 
 You should always remember to backup your data first, and reboot after upgrading.
 
 #### Manual Upgrade Scripts Have Been DEPRECATED
 
-These scripts have been deprecated as of v0.9.0 are still on the system at `/usr/share/BlueKrypto/k3os/scripts`.
+These scripts have been deprecated as of v0.9.0 are still on the system at `/usr/share/thejaykobe/k3os/scripts`.
 
 ## Building
 
