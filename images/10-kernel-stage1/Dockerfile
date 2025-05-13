@@ -17,7 +17,7 @@ RUN apt-get --assume-yes update \
  && echo 'nls_iso8859_1' >> /etc/initramfs-tools/modules
 
 ARG ARCH
-ENV KVERSION=5.15.0-139-generic
+ENV KVERSION=5.15.0-138-generic
 ENV URL=https://github.com/thejaykobe/k3os-kernel/releases/download/latest
 ENV KERNEL_XZ=${URL}/kernel-generic_${ARCH}.tar.xz
 ENV KERNEL_EXTRA_XZ=${URL}/kernel-extra-generic_${ARCH}.tar.xz
