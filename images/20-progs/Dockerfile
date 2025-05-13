@@ -3,7 +3,7 @@ ARG TAG
 ARG VERSION
 FROM ${REPO}/k3os-gobuild:${TAG} as gobuild
 
-ENV LINUXKIT v1.6.0
+ENV LINUXKIT v1.0.1
 
 FROM gobuild as linuxkit
 ENV GO111MODULE off
@@ -25,5 +25,5 @@ FROM gobuild
 COPY --from=linuxkit /output/ /output/
 COPY --from=k3os /output/ /output/
 WORKDIR /output
-RUN git clone --branch v0.9.4 https://github.com/ahmetb/kubectx.git \
+RUN git clone --branch v0.9.5 https://github.com/ahmetb/kubectx.git \
  && chmod -v +x kubectx/kubectx kubectx/kubens
