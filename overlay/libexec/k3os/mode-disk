@@ -4,43 +4,129 @@ TARGET=/run/k3os/target
 
 source /usr/lib/os-release
 
-grow()
-{
-    parted $1 resizepart $2 100%
-    partprobe $1
+# grow()
+# {
+#     parted $1 resizepart $2 100%
+#     partprobe $1
+#     sleep 2
+#     e2fsck -f $3
+#     resize2fs $3
+# }
+
+# setup_mounts()
+# {
+#     mkdir -p $TARGET
+#     mount -L K3OS_STATE $TARGET
+
+#     if [ -e $TARGET/k3os/system/growpart ]; then
+#         read DEV NUM < $TARGET/k3os/system/growpart
+#         if [ ! -e "${DEV}${NUM}" ]; then
+#             # /dev/sda2 => /dev/sda2
+#             # /dev/nvme0n1p2 => /dev/nvme0n1p2
+#             PART=$(blkid -L K3OS_STATE)
+
+#             # /dev/sda2 => /dev/sda
+#             # /dev/nvme0n1p2 => /dev/nvme0n1
+#             DEV=$(echo "$PART" | sed -r 's/((\d+)p)?\d+$/\2/')
+
+#             # /dev/sda2 => 2
+#             # /dev/nvme0n1p2 => 2
+#             NUM=$(echo "$PART" | sed 's!.*[^0-9]!!')
+#         fi
+#         if [ -e "${PART:=${DEV}${NUM}}" ]; then
+#             umount $TARGET
+#             grow $DEV $NUM $PART || true
+#             mount -L K3OS_STATE $TARGET
+#         fi
+#         rm -f $TARGET/k3os/system/growpart
+#     fi
+# }
+
+grow() {
+    DISK="$1"   # /dev/sda
+    NUM="$2"    # 2
+    PART="$3"   # /dev/sda2
+
+    echo "Resizing partition $DISK number $NUM ($PART)"
+
+    parted -s "$DISK" resizepart "$NUM" 100% || {
+        echo "Failed to resize partition $NUM on $DISK"
+        return 1
+    }
+
+    # Refresh partition table
+    partx -u "$DISK" || partprobe "$DISK"
+    udevadm settle
     sleep 2
-    e2fsck -f $3
-    resize2fs $3
+
+    # Detect filesystem type
+    FSTYPE=$(blkid -o value -s TYPE "$PART")
+    echo "Detected filesystem: $FSTYPE"
+
+    case "$FSTYPE" in
+        ext2|ext3|ext4)
+            echo "Checking and resizing ext filesystem..."
+            e2fsck -f "$PART" || return 1
+            resize2fs "$PART" || return 1
+            ;;
+        xfs)
+            echo "Growing XFS filesystem..."
+            mountpoint=$(findmnt -n -o TARGET "$PART")
+            if [ -n "$mountpoint" ]; then
+                xfs_growfs "$mountpoint" || return 1
+            else
+                echo "XFS partition must be mounted to resize."
+                return 1
+            fi
+            ;;
+        *)
+            echo "Unsupported filesystem type: $FSTYPE"
+            return 1
+            ;;
+    esac
+
+    echo "Filesystem resize complete."
 }
 
-setup_mounts()
-{
-    mkdir -p $TARGET
-    mount -L K3OS_STATE $TARGET
 
-    if [ -e $TARGET/k3os/system/growpart ]; then
-        read DEV NUM < $TARGET/k3os/system/growpart
+setup_mounts() {
+    mkdir -p "$TARGET"
+    mount -L K3OS_STATE "$TARGET"
+
+    if [ -e "$TARGET/k3os/system/growpart" ]; then
+        read DEV NUM < "$TARGET/k3os/system/growpart"
+
+        # Try to determine the correct partition if DEV+NUM is not valid
         if [ ! -e "${DEV}${NUM}" ]; then
-            # /dev/sda2 => /dev/sda2
-            # /dev/nvme0n1p2 => /dev/nvme0n1p2
             PART=$(blkid -L K3OS_STATE)
-
-            # /dev/sda2 => /dev/sda
-            # /dev/nvme0n1p2 => /dev/nvme0n1
-            DEV=$(echo "$PART" | sed -r 's/((\d+)p)?\d+$/\2/')
-
-            # /dev/sda2 => 2
-            # /dev/nvme0n1p2 => 2
-            NUM=$(echo "$PART" | sed 's!.*[^0-9]!!')
+            if [[ "$PART" =~ ^(/dev/nvme[0-9]n[0-9])p([0-9]+)$ ]]; then
+                DEV="${BASH_REMATCH[1]}"
+                NUM="${BASH_REMATCH[2]}"
+            elif [[ "$PART" =~ ^(/dev/[a-z]+)([0-9]+)$ ]]; then
+                DEV="${BASH_REMATCH[1]}"
+                NUM="${BASH_REMATCH[2]}"
+            else
+                echo "Unable to determine device and partition number from $PART"
+                umount "$TARGET"
+                return 1
+            fi
         fi
-        if [ -e "${PART:=${DEV}${NUM}}" ]; then
-            umount $TARGET
-            grow $DEV $NUM $PART || true
-            mount -L K3OS_STATE $TARGET
+
+        PART="${DEV}${NUM}"
+
+        if [ -e "$PART" ]; then
+            echo "Detected partition to grow: $PART"
+            umount "$TARGET"
+            grow "$DEV" "$NUM" "$PART"
+            mount -L K3OS_STATE "$TARGET"
+        else
+            echo "Partition device $PART does not exist."
         fi
-        rm -f $TARGET/k3os/system/growpart
+
+        rm -f "$TARGET/k3os/system/growpart"
     fi
 }
+
 
 setup_kernel_squashfs()
 {
