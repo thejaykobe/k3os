@@ -165,40 +165,116 @@ setup_state_dirs()
     mkdir -p /var/lib/rancher/k3s/agent/libexec/kubernetes
 }
 
-do_grow_live()
-{
-    parted $1 resizepart $2 yes 100%
-    partprobe $1
+# do_grow_live()
+# {
+#     parted $1 resizepart $2 yes 100%
+#     partprobe $1
+#     sleep 2
+#     resize2fs $3
+# }
+
+# grow_live()
+# {
+#     if [ "$K3OS_MODE" != "local" ]; then
+#         return 0
+#     fi
+
+#     if [ -e /k3os/system/growpart ]; then
+#         read DEV NUM < /k3os/system/growpart
+#         if [ ! -e "${DEV}${NUM}" ]; then
+#             # /dev/sda2 => /dev/sda2
+#             # /dev/nvme0n1p2 => /dev/nvme0n1p2
+#             PART=$(blkid -L K3OS_STATE)
+
+#             # /dev/sda2 => /dev/sda
+#             # /dev/nvme0n1p2 => /dev/nvme0n1
+#             DEV=$(echo "$PART" | sed -r 's/((\d+)p)?\d+$/\2/')
+
+#             # /dev/sda2 => 2
+#             # /dev/nvme0n1p2 => 2
+#             NUM=$(echo "$PART" | sed 's!.*[^0-9]!!')
+#         fi
+#         pinfo Growing ${PART:=${DEV}${NUM}}
+#         do_grow_live $DEV $NUM $PART || true
+#         rm -f /k3os/system/growpart
+#     fi
+# }
+
+do_grow_live() {
+    disk="$1"      # e.g., /dev/sda
+    partnum="$2"   # e.g., 2
+    part="$3"      # e.g., /dev/sda2
+
+    echo "Resizing partition $disk (partition $partnum)"
+
+    # Resize the partition
+    if ! parted -s "$disk" resizepart "$partnum" 100%; then
+        echo "Failed to resize partition $partnum on $disk"
+        return 1
+    fi
+
+    echo "Refreshing partition table..."
+    partx -u "$disk" || partprobe "$disk"
+    udevadm settle
     sleep 2
-    resize2fs $3
+
+    # Get filesystem type
+    FSTYPE=$(blkid -o value -s TYPE "$part")
+    echo "Filesystem type detected: $FSTYPE"
+
+    echo "Resizing filesystem on $part..."
+    case "$FSTYPE" in
+        ext2|ext3|ext4)
+            resize2fs "$part" || { echo "resize2fs failed"; return 1; }
+            ;;
+        xfs)
+            xfs_growfs "$part" || { echo "xfs_growfs failed"; return 1; }
+            ;;
+        *)
+            echo "Unsupported filesystem type: $FSTYPE"
+            return 1
+            ;;
+    esac
+
+    echo "Resize complete on $part."
 }
 
-grow_live()
-{
+
+grow_live() {
     if [ "$K3OS_MODE" != "local" ]; then
+        echo "Not running in local mode, skipping grow_live."
         return 0
     fi
 
     if [ -e /k3os/system/growpart ]; then
         read DEV NUM < /k3os/system/growpart
+
+        # If the device path doesn't exist, try to find it using the label
         if [ ! -e "${DEV}${NUM}" ]; then
-            # /dev/sda2 => /dev/sda2
-            # /dev/nvme0n1p2 => /dev/nvme0n1p2
             PART=$(blkid -L K3OS_STATE)
 
-            # /dev/sda2 => /dev/sda
-            # /dev/nvme0n1p2 => /dev/nvme0n1
-            DEV=$(echo "$PART" | sed -r 's/((\d+)p)?\d+$/\2/')
-
-            # /dev/sda2 => 2
-            # /dev/nvme0n1p2 => 2
-            NUM=$(echo "$PART" | sed 's!.*[^0-9]!!')
+            if [[ "$PART" =~ ^(/dev/nvme[0-9]n[0-9])p([0-9]+)$ ]]; then
+                DEV="${BASH_REMATCH[1]}"
+                NUM="${BASH_REMATCH[2]}"
+            elif [[ "$PART" =~ ^(/dev/[a-z]+)([0-9]+)$ ]]; then
+                DEV="${BASH_REMATCH[1]}"
+                NUM="${BASH_REMATCH[2]}"
+            else
+                echo "Failed to parse device/partition from $PART"
+                return 1
+            fi
         fi
-        pinfo Growing ${PART:=${DEV}${NUM}}
-        do_grow_live $DEV $NUM $PART || true
+
+        PART="${DEV}${NUM}"
+        echo "Growing partition: $PART (device: $DEV, number: $NUM)"
+        lsblk
+        do_grow_live "$DEV" "$NUM" "$PART" || true
         rm -f /k3os/system/growpart
+    else
+        echo "No growpart file found, skipping."
     fi
 }
+
 
 setup_mounts
 grow_live
