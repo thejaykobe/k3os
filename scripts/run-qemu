@@ -33,7 +33,7 @@ fi
 # DISK_NAME=test.img ./scripts/run-qemu k3os.password=rancher k3os.mode=live
 
 exec $QEMU_SYSTEM \
-    -m ${MEMORY:=2048} \
+    -m ${MEMORY:=6144} \
     -machine accel=${ACCEL:="hax:kvm:hvf:tcg"} \
     -nographic \
     -serial mon:stdio \
