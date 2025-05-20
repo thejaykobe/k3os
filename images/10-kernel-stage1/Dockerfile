@@ -19,7 +19,7 @@ RUN apt-get --assume-yes update \
  && echo 'nls_iso8859_1' >> /etc/initramfs-tools/modules
 
 ARG ARCH
-ENV URL=https://github.com/thejaykobe/k3os-kernel/releases/download/6.8.0-31-31
+ENV URL=http://192.168.3.17:8000
 ENV KERNEL_XZ=${URL}/kernel-generic_${ARCH}.tar.xz
 ENV KERNEL_EXTRA_XZ=${URL}/kernel-extra-generic_${ARCH}.tar.xz
 ENV KERNEL_HEADERS_XZ=${URL}/kernel-headers-generic_${ARCH}.tar.xz
