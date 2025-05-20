@@ -1,15 +1,17 @@
 ARG REPO
 ARG TAG
-FROM ubuntu:focal
+FROM ubuntu:noble
 
+ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get --assume-yes update \
  && apt-get --assume-yes install \
     curl \
-    initramfs-tools \
     kmod \
     lz4 \
     rsync \
     xz-utils \
+    zstd \
+    dracut \
  && echo 'r8152' >> /etc/initramfs-tools/modules \
  && echo 'hfs' >> /etc/initramfs-tools/modules \
  && echo 'hfsplus' >> /etc/initramfs-tools/modules \
@@ -17,7 +19,6 @@ RUN apt-get --assume-yes update \
  && echo 'nls_iso8859_1' >> /etc/initramfs-tools/modules
 
 ARG ARCH
-ENV KVERSION=6.8.0-31-generic
 ENV URL=https://github.com/thejaykobe/k3os-kernel/releases/download/6.8.0-31-31
 ENV KERNEL_XZ=${URL}/kernel-generic_${ARCH}.tar.xz
 ENV KERNEL_EXTRA_XZ=${URL}/kernel-extra-generic_${ARCH}.tar.xz
@@ -35,12 +36,13 @@ RUN mkdir -p /usr/src/root && \
     tar xvf /usr/src/kernel.tar.xz && \
     tar xvf /usr/src/kernel-extra.tar.xz && \
     tar xvf /usr/src/kernel-headers.tar.xz
-
+    
 # Create initrd
+ENV KVERSION=6.8.0-31-generic
 RUN mkdir /usr/src/initrd && \
     rsync -a /usr/src/root/lib/ /lib/ && \
-    depmod $KVERSION && \
-    mkinitramfs -k $KVERSION -c lz4 -o /usr/src/initrd.tmp
+    depmod $KVERSION  && \
+    dracut /usr/src/initrd.tmp $KVERSION --lz4
 
 # Generate initrd firmware and module lists
 RUN mkdir -p /output/lib && \
