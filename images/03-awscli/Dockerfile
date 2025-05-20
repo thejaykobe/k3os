@@ -1,4 +1,4 @@
-ARG ALPINE_VERSION=
+ARG ALPINE_VERSION=3.21
 FROM python:3.11.12-alpine${ALPINE_VERSION} as builder
 # Pinned at 3.11 due to pyinstaller
 

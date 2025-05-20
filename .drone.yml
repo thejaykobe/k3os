@@ -204,8 +204,8 @@ steps:
       - linux/amd64
       - linux/arm64
       - linux/arm
-    target: "rancher/k3os:${DRONE_TAG}"
-    template: "rancher/k3os:${DRONE_TAG}-ARCH"
+    target: "thejaykobe/k3os:${DRONE_TAG}"
+    template: "thejaykobe/k3os:${DRONE_TAG}-ARCH"
   when:
     instance:
     - drone-publish.rancher.io
