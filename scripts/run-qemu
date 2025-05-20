@@ -16,7 +16,7 @@ if [ ! -d $STATE_DIR ]; then
     mkdir -p $STATE_DIR
 fi
 if [ ! -e $STATE_DIR/${DISK_NAME:=vda.img} ]; then
-    qemu-img create -f qcow2 $STATE_DIR/${DISK_NAME} ${DISK_SIZE:=8g}
+    qemu-img create -f qcow2 $STATE_DIR/${DISK_NAME} ${DISK_SIZE:=40g}
 fi
 
 # Example Usage

@@ -1,11 +1,11 @@
 ### BASE ###
-FROM alpine:3.14 as base
+FROM alpine:3.19 as base
 ARG ARCH
 RUN apk --no-cache add \
     bash \
     bash-completion \
     blkid \
-    busybox-initscripts \
+    busybox \
     ca-certificates \
     connman \
     conntrack-tools \
@@ -38,6 +38,7 @@ RUN apk --no-cache add \
     lsscsi \
     lvm2 \
     lvm2-extra \
+    nano \
     mdadm \
     mdadm-misc \
     mdadm-udev \
