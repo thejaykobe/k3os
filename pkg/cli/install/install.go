@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/rancher/k3os/pkg/cliinstall"
-	"github.com/rancher/k3os/pkg/mode"
+	"github.com/thejaykobe/k3os/pkg/cliinstall"
+	"github.com/thejaykobe/k3os/pkg/mode"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 )
