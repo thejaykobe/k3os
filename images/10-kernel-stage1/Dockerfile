@@ -38,7 +38,7 @@ RUN mkdir -p /usr/src/root && \
     tar xvf /usr/src/kernel-headers.tar.xz
     
 # Create initrd
-ENV KVERSION=6.8.0-31-generic
+ENV KVERSION=5.15.0-140-generic
 RUN mkdir /usr/src/initrd && \
     rsync -a /usr/src/root/lib/ /lib/ && \
     depmod $KVERSION  && \
