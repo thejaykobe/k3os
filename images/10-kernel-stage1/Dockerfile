@@ -1,6 +1,6 @@
 ARG REPO
 ARG TAG
-FROM ubuntu:noble
+FROM ubuntu:jammy
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get --assume-yes update \
