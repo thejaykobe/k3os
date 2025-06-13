@@ -40,7 +40,7 @@ steps:
     dockerfile: package/Dockerfile
     password:
       from_secret: docker_password
-    repo: "bluekrypto/k3os"
+    repo: "thejaykobe/k3os"
     tag: "${DRONE_TAG}-amd64"
     username:
       from_secret: docker_username
@@ -98,7 +98,7 @@ steps:
     dockerfile: package/Dockerfile
     password:
       from_secret: docker_password
-    repo: "bluekrypto/k3os"
+    repo: "thejaykobe/k3os"
     tag: "${DRONE_TAG}-arm64"
     username:
       from_secret: docker_username
@@ -166,7 +166,7 @@ steps:
     dockerfile: package/Dockerfile
     password:
       from_secret: docker_password
-    repo: "bluekrypto/k3os"
+    repo: "thejaykobe/k3os"
     tag: "${DRONE_TAG}-arm"
     username:
       from_secret: docker_username
@@ -202,8 +202,8 @@ steps:
       - linux/amd64
       - linux/arm64
       - linux/arm
-    target: "bluekrypto/k3os:${DRONE_TAG}"
-    template: "bluekrypto/k3os:${DRONE_TAG}-ARCH"
+    target: "thejaykobe/k3os:${DRONE_TAG}"
+    template: "thejaykobe/k3os:${DRONE_TAG}-ARCH"
   when:
     ref:
     - refs/head/master

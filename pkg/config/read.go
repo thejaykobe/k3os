@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/BlueKrypto/k3os/pkg/system"
+	"github.com/thejaykobe/k3os/pkg/system"
 	"github.com/ghodss/yaml"
 	"github.com/rancher/mapper"
 	"github.com/rancher/mapper/convert"
