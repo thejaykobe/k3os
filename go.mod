@@ -1,6 +1,6 @@
 module github.com/thejaykobe/k3os
 
-go 1.24.4
+go 1.16
 
 require (
 	github.com/ghodss/yaml v1.0.0
