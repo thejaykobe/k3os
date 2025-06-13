@@ -1,5 +1,5 @@
-ARG ALPINE_VERSION=3.22.0
-FROM python:3.13.5-alpine3.22${ALPINE_VERSION} as builder
+ARG ALPINE_VERSION=3.22
+FROM python:3.13.5-alpine${ALPINE_VERSION} as builder
 
 ARG AWS_CLI_VERSION=2.27.16
 RUN apk add --no-cache git unzip groff build-base libffi-dev cmake
@@ -8,6 +8,7 @@ RUN git clone --single-branch --depth 1 -b ${AWS_CLI_VERSION} https://github.com
 WORKDIR aws-cli
 RUN python -m venv venv
 RUN . venv/bin/activate
+RUN pip install setuptools
 RUN scripts/installers/make-exe
 RUN unzip -q dist/awscli-exe.zip
 RUN aws/install --bin-dir /aws-cli-bin --install-dir /usr/bin/aws-cli

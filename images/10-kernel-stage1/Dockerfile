@@ -17,8 +17,8 @@ RUN apt-get --assume-yes update \
  && echo 'nls_iso8859_1' >> /etc/initramfs-tools/modules
 
 ARG ARCH
-ENV KVERSION=5.15.0-124-generic
-ENV URL=http://localhost:8000
+ENV KVERSION=5.15.0-141-generic
+ENV URL=http://192.168.3.17:8000
 ENV KERNEL_XZ=${URL}/kernel-generic_${ARCH}.tar.xz
 ENV KERNEL_EXTRA_XZ=${URL}/kernel-extra-generic_${ARCH}.tar.xz
 ENV KERNEL_HEADERS_XZ=${URL}/kernel-headers-generic_${ARCH}.tar.xz
