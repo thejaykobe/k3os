@@ -8,7 +8,7 @@ platform:
 
 steps:
 - name: build
-  image: rancher/dapper:v0.5.0
+  image: rancher/dapper:v0.6.0
   commands:
   - dapper ci
   volumes:
@@ -28,8 +28,6 @@ steps:
     files:
     - "dist/artifacts/*"
   when:
-    instance:
-    - drone-publish.rancher.io
     ref:
     - refs/head/master
     - refs/tags/*
@@ -42,13 +40,11 @@ steps:
     dockerfile: package/Dockerfile
     password:
       from_secret: docker_password
-    repo: "rancher/k3os"
+    repo: "bluekrypto/k3os"
     tag: "${DRONE_TAG}-amd64"
     username:
       from_secret: docker_username
   when:
-    instance:
-    - drone-publish.rancher.io
     ref:
     - refs/head/master
     - refs/tags/*
@@ -70,7 +66,7 @@ platform:
 
 steps:
 - name: build
-  image: rancher/dapper:v0.5.0
+  image: rancher/dapper:v0.6.0
   commands:
   - dapper ci
   volumes:
@@ -90,8 +86,6 @@ steps:
     files:
     - "dist/artifacts/*"
   when:
-    instance:
-    - drone-publish.rancher.io
     ref:
     - refs/head/master
     - refs/tags/*
@@ -104,13 +98,11 @@ steps:
     dockerfile: package/Dockerfile
     password:
       from_secret: docker_password
-    repo: "rancher/k3os"
+    repo: "bluekrypto/k3os"
     tag: "${DRONE_TAG}-arm64"
     username:
       from_secret: docker_username
   when:
-    instance:
-    - drone-publish.rancher.io
     ref:
     - refs/head/master
     - refs/tags/*
@@ -130,7 +122,17 @@ platform:
   os: linux
   arch: arm
 
+clone:
+  disable: true
+
 steps:
+- name: clone
+  image: drone/git:linux-arm
+  commands:
+  - git clone $DRONE_REMOTE_URL .
+  - git fetch origin +refs/heads/$DRONE_BRANCH
+  - git checkout $DRONE_COMMIT -b $DRONE_BRANCH
+
 - name: build
   image: rancher/dapper:v0.5.0
   commands:
@@ -152,8 +154,6 @@ steps:
     files:
     - "dist/artifacts/*"
   when:
-    instance:
-    - drone-publish.rancher.io
     ref:
     - refs/head/master
     - refs/tags/*
@@ -161,18 +161,16 @@ steps:
     - tag
 
 - name: docker-publish
-  image: plugins/docker
+  image: plugins/docker:linux-arm
   settings:
     dockerfile: package/Dockerfile
     password:
       from_secret: docker_password
-    repo: "rancher/k3os"
+    repo: "bluekrypto/k3os"
     tag: "${DRONE_TAG}-arm"
     username:
       from_secret: docker_username
   when:
-    instance:
-    - drone-publish.rancher.io
     ref:
     - refs/head/master
     - refs/tags/*
@@ -204,11 +202,9 @@ steps:
       - linux/amd64
       - linux/arm64
       - linux/arm
-    target: "rancher/k3os:${DRONE_TAG}"
-    template: "rancher/k3os:${DRONE_TAG}-ARCH"
+    target: "bluekrypto/k3os:${DRONE_TAG}"
+    template: "bluekrypto/k3os:${DRONE_TAG}-ARCH"
   when:
-    instance:
-    - drone-publish.rancher.io
     ref:
     - refs/head/master
     - refs/tags/*

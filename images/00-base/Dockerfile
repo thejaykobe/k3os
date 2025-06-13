@@ -1,11 +1,12 @@
 ### BASE ###
-FROM alpine:3.14 as base
+FROM alpine:3.22.0 as base
 ARG ARCH
 RUN apk --no-cache add \
     bash \
     bash-completion \
     blkid \
-    busybox-initscripts \
+    busybox-extras-openrc \
+    busybox-openrc \
     ca-certificates \
     connman \
     conntrack-tools \
@@ -49,12 +50,14 @@ RUN apk --no-cache add \
     openrc \
     openssh-client \
     openssh-server \
+    openssl \
     parted \
     procps \
     qemu-guest-agent \
     rng-tools \
     rsync \
     strace \
+    strongswan \
     smartmontools \
     sudo \
     tar \

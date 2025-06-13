@@ -2,11 +2,10 @@ package system
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
-	"github.com/docker/docker/pkg/mount"
+	"github.com/BlueKrypto/k3os/pkg/mount"
 	"github.com/otiai10/copy"
 	"github.com/sirupsen/logrus"
 )
@@ -56,7 +55,7 @@ func CopyComponent(src, dst string, remount bool, key string) (bool, error) {
 		return false, nil
 	}
 	if remount {
-		if err := mount.Mount("", dst, "none", "remount,rw"); err != nil {
+		if err := mount.ForceMount("", dst, "none", "remount,rw"); err != nil {
 			return false, err
 		}
 	}
@@ -73,7 +72,7 @@ func CopyComponent(src, dst string, remount bool, key string) (bool, error) {
 	logrus.Debugf("created symlink: %v", dstCurrTemp)
 	defer os.Remove(dstCurrTemp) // if this fails, that means it's gone which is correct
 
-	dstTemp, err := ioutil.TempDir(filepath.Split(dstPath))
+	dstTemp, err := os.MkdirTemp(filepath.Split(dstPath))
 	if err != nil {
 		return false, err
 	}

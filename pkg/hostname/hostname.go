@@ -2,12 +2,11 @@ package hostname
 
 import (
 	"bufio"
-	"io/ioutil"
 	"os"
 	"strings"
 	"syscall"
 
-	"github.com/rancher/k3os/pkg/config"
+	"github.com/BlueKrypto/k3os/pkg/config"
 )
 
 func SetHostname(c *config.CloudConfig) error {
@@ -30,7 +29,7 @@ func syncHostname() error {
 		return nil
 	}
 
-	if err := ioutil.WriteFile("/etc/hostname", []byte(hostname+"\n"), 0644); err != nil {
+	if err := os.WriteFile("/etc/hostname", []byte(hostname+"\n"), 0644); err != nil {
 		return err
 	}
 
@@ -50,5 +49,5 @@ func syncHostname() error {
 		}
 		content += line + "\n"
 	}
-	return ioutil.WriteFile("/etc/hosts", []byte(content), 0600)
+	return os.WriteFile("/etc/hosts", []byte(content), 0600)
 }

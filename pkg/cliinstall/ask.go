@@ -4,15 +4,14 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
 
-	"github.com/rancher/k3os/pkg/config"
-	"github.com/rancher/k3os/pkg/mode"
-	"github.com/rancher/k3os/pkg/questions"
-	"github.com/rancher/k3os/pkg/util"
+	"github.com/BlueKrypto/k3os/pkg/config"
+	"github.com/BlueKrypto/k3os/pkg/mode"
+	"github.com/BlueKrypto/k3os/pkg/questions"
+	"github.com/BlueKrypto/k3os/pkg/util"
 )
 
 func Ask(cfg *config.CloudConfig) (bool, error) {
@@ -192,12 +191,12 @@ func AskPassword(cfg *config.CloudConfig) error {
 		return nil
 	}
 
-	oldShadow, err := ioutil.ReadFile("/etc/shadow")
+	oldShadow, err := os.ReadFile("/etc/shadow")
 	if err != nil {
 		return err
 	}
 	defer func() {
-		ioutil.WriteFile("/etc/shadow", oldShadow, 0640)
+		os.WriteFile("/etc/shadow", oldShadow, 0640)
 	}()
 
 	cmd := exec.Command("chpasswd")

@@ -1,9 +1,11 @@
+//go:build linux
+// +build linux
+
 package enterchroot
 
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -12,8 +14,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/docker/docker/pkg/mount"
-	"github.com/docker/docker/pkg/reexec"
+	"github.com/BlueKrypto/k3os/pkg/mount"
+	"github.com/moby/moby/pkg/reexec"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sys/unix"
@@ -65,7 +67,7 @@ func isDebug() bool {
 		return false
 	}
 
-	bytes, err := ioutil.ReadFile("/proc/cmdline")
+	bytes, err := os.ReadFile("/proc/cmdline")
 	if err != nil {
 		// ignore error
 		return false
@@ -208,6 +210,7 @@ func inFile() (string, uint64, error) {
 }
 
 func run(data string) error {
+	// TODO: replace github.com/moby/pkg/mountinfo
 	mounted, err := mount.Mounted(data)
 	if err != nil {
 		return errors.Wrapf(err, "checking %s mounted", data)
@@ -307,7 +310,7 @@ func checkSquashfs() error {
 }
 
 func inProcFS() bool {
-	bytes, err := ioutil.ReadFile("/proc/filesystems")
+	bytes, err := os.ReadFile("/proc/filesystems")
 	if err != nil {
 		logrus.Errorf("Failed to read /proc/filesystems: %v", err)
 		return false

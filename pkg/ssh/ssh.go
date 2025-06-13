@@ -2,7 +2,7 @@ package ssh
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rancher/k3os/pkg/config"
-	"github.com/rancher/k3os/pkg/util"
+	"github.com/BlueKrypto/k3os/pkg/config"
+	"github.com/BlueKrypto/k3os/pkg/util"
 	"github.com/sirupsen/logrus"
 )
 
@@ -22,7 +22,7 @@ const (
 )
 
 func SetAuthorizedKeys(cfg *config.CloudConfig, withNet bool) error {
-	bytes, err := ioutil.ReadFile("/etc/passwd")
+	bytes, err := os.ReadFile("/etc/passwd")
 	if err != nil {
 		return err
 	}
@@ -54,6 +54,7 @@ func getKey(key string, withNet bool) (string, error) {
 	providers := map[string]string{
 		"github": "https://github.com/%s.keys",
 		"gitlab": "https://gitlab.com/%s.keys",
+		"custom": "%s",
 	}
 
 	url, err := url.Parse(key)
@@ -87,7 +88,7 @@ func getKey(key string, withNet bool) (string, error) {
 	if resp.StatusCode/100 > 2 {
 		return "", fmt.Errorf("%s %s", resp.Proto, resp.Status)
 	}
-	bytes, err := ioutil.ReadAll(resp.Body)
+	bytes, err := io.ReadAll(resp.Body)
 	return string(bytes), err
 }
 
@@ -116,7 +117,7 @@ func authorizeSSHKey(key, file string, uid, gid int, withNet bool) error {
 	} else if err != nil {
 		return err
 	}
-	bytes, err := ioutil.ReadFile(file)
+	bytes, err := os.ReadFile(file)
 	if err != nil {
 		return err
 	}

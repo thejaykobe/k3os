@@ -7,11 +7,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/docker/docker/pkg/mount"
-	"github.com/docker/docker/pkg/reexec"
-	"github.com/rancher/k3os/pkg/cli/app"
-	"github.com/rancher/k3os/pkg/enterchroot"
-	"github.com/rancher/k3os/pkg/transferroot"
+	"github.com/thejaykobe/k3os/pkg/cli/app"
+	"github.com/thejaykobe/k3os/pkg/enterchroot"
+	"github.com/thejaykobe/k3os/pkg/mount"
+	"github.com/thejaykobe/k3os/pkg/transferroot"
+	"github.com/moby/moby/pkg/reexec"
 	"github.com/sirupsen/logrus"
 )
 
