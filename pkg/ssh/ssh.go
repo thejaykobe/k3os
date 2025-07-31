@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/BlueKrypto/k3os/pkg/config"
-	"github.com/BlueKrypto/k3os/pkg/util"
+	"github.com/thejaykobe/k3os/pkg/config"
+	"github.com/thejaykobe/k3os/pkg/util"
 	"github.com/sirupsen/logrus"
 )
 

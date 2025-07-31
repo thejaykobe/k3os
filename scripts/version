@@ -21,7 +21,7 @@ ARCH="${ARCH:-"amd64"}"
 # buildx uses arm/v7
 ARCH="${ARCH//\/v7/}"
 TAG=${TAG:-"${VERSION}-${ARCH}"}
-REPO=${REPO:-bluekrypto}
+REPO=${REPO:-thejaykobe}
 BRANCH=${DRONE_TARGET_BRANCH:-$(git branch --show-current)}
 
 if echo $TAG | grep -q dirty; then

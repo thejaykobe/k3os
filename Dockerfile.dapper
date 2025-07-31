@@ -14,7 +14,7 @@ RUN curl -sSfL https://github.com/docker/buildx/releases/download/v0.14.1/buildx
 
 ENV DAPPER_RUN_ARGS --privileged -v /tmp:/tmp -v k3os-pkg:/go/pkg -v k3os-cache:/root/.cache/go-build
 ENV DAPPER_ENV REPO TAG DRONE_TAG BRANCH DRONE_TARGET_BRANCH
-ENV DAPPER_SOURCE /go/src/github.com/BlueKrypto/k3os/
+ENV DAPPER_SOURCE /go/src/github.com/thejaykobe/k3os/
 ENV DAPPER_OUTPUT ./build ./dist
 ENV DAPPER_DOCKER_SOCKET true
 ENV HOME ${DAPPER_SOURCE}

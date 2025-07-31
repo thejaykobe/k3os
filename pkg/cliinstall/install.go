@@ -5,8 +5,8 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/BlueKrypto/k3os/pkg/config"
-	"github.com/BlueKrypto/k3os/pkg/questions"
+	"github.com/thejaykobe/k3os/pkg/config"
+	"github.com/thejaykobe/k3os/pkg/questions"
 	"github.com/ghodss/yaml"
 )
 

@@ -1,4 +1,4 @@
-module github.com/BlueKrypto/k3os
+module github.com/thejaykobe/k3os
 
 go 1.22
 

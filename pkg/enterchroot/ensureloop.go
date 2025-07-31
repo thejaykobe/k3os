@@ -5,7 +5,7 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/BlueKrypto/k3os/pkg/mount"
+	"github.com/thejaykobe/k3os/pkg/mount"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sys/unix"
