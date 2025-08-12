@@ -28,10 +28,9 @@ buildx build \
   --build-arg BRANCH=${BRANCH} \
   --file package/Dockerfile \
   --tag ${REPO}/k3os:${TAG} \
+  # --tag ${REPO}/k3os:latest \   # Remove or comment out this line
 .
-
 docker image save --output ./dist/images.tar \
-  ${REPO}/k3os:${TAG} \
-  ${REPO}/k3os:latest
+  ${REPO}/k3os:${TAG}
 echo ${REPO}/k3os:${TAG} > ./dist/images.txt
 echo Built ${REPO}/k3os:${TAG}
