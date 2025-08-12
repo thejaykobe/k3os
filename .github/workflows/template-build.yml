@@ -162,7 +162,7 @@ jobs:
           tags: |
             type=ref,event=branch
             type=ref,event=pr
-            pattern={{release-tag-name}}   # Use your release tag input
+            pattern={{ inputs.release-tag-name}}
 
       - name: Create manifest list and push
         if: ${{ inputs.push }}
