@@ -3,7 +3,7 @@ apiVersion: upgrade.cattle.io/v1
 kind: Plan
 metadata:
   # This `name` should be short but descriptive.
-  name: k3os-latest
+  name: k3os-current
   # The same `namespace` as is used for the system-upgrade-controller Deployment.
   namespace: k3os-system
 spec:
@@ -12,7 +12,7 @@ spec:
 
   # The value for `channel` is assumed to be a URL that returns HTTP 302 with the last path element of the value
   # returned in the Location header assumed to be an image tag.
-  channel: https://github.com/thejaykobe/k3os/releases
+  channel: https://github.com/thejaykobe/k3os/releases/tag/v1.28.15-1.1-production
 
   # Providing a value for `version` will prevent polling/resolution of the `channel` if specified.
   # version: v0.11.0-rc1
@@ -48,7 +48,7 @@ spec:
   # Shares the same format as the `upgrade` container.
   # This formulation will incur the ghcr.io/thejaykobe/k3os image download prior to the drain, minimizing unavailability.
   prepare:
-    image: ghcr.io/thejaykobe/k3os
+    image: ghcr.io/thejaykobe/k3os:1.28.15-1.1-production
     command: [k3os, --version]
     args: []
 
@@ -61,7 +61,7 @@ spec:
 
   upgrade:
     # The tag portion of the image will be overridden with the value from `.status.latestVersion` a.k.a. the resolved version.
-    image: ghcr.io/thejaykobe/k3os
+    image: ghcr.io/thejaykobe/k3os:1.28.15-1.1-production
     command: [k3os, --debug]
     # It is safe to specify `--kernel` on overlay installations as the destination path will not exist and so the
     # upgrade of the kernel component will be skipped (with a warning in the log).

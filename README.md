@@ -2,6 +2,12 @@
 ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/thejaykobe/k3os)
 ![GitHub release (latest SemVer including pre-releases)](https://img.shields.io/github/v/release/thejaykobe/k3os?include_prereleases&label=release&sort=semver)
 
+# NOTES
+
+I'm still working on migrating the container code to git from docker hub. There are some issues I'm working through, but feel the current release is stable enough to push to production based on my test & production clusters running stable for over a week now.
+
+In order to upgrade to this version you will have to use the upgrade template here -> https://github.com/thejaykobe/k3os/blob/master/overlay/share/rancher/k3s/server/manifests/system-upgrade-plans/k3os-latest.yaml - you will also have to add or update the label on your nodes with the following info -> k3os.io/upgrade=1.28.15-1.1-production
+
 # k3OS
 
 k3OS is a Linux distribution designed to remove as much OS maintenance
