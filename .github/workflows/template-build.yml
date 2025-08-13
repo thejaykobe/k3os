@@ -162,7 +162,7 @@ jobs:
           tags: |
             type=ref,event=branch
             type=ref,event=pr
-            pattern={{ inputs.release-tag-name}}
+            pattern=${{ github.ref_name }}
 
       - name: Create manifest list and push
         if: ${{ inputs.push }}
