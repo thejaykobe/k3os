@@ -143,17 +143,6 @@ jobs:
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
 
-      # - name: Get Docker Metadata
-      #   id: meta
-      #   uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
-      #   with:
-      #     images: ${{ env.REGISTRY }}/${{ github.repository }}
-      #     tags: |
-      #       type=ref,event=branch
-      #       type=ref,event=pr
-      #       type=semver,pattern={{version}}
-      #       type=semver,pattern={{major}}.{{minor}}
-
       - name: Get Docker Metadata
         id: meta
         uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
@@ -162,19 +151,30 @@ jobs:
           tags: |
             type=ref,event=branch
             type=ref,event=pr
-            pattern=${{ github.ref_name }}
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+
+      # - name: Get Docker Metadata
+      #   id: meta
+      #   uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
+      #   with:
+      #     images: ${{ env.REGISTRY }}/${{ github.repository }}
+      #     tags: |
+      #       type=ref,event=branch
+      #       type=ref,event=pr
+      #       type=semver,pattern=${{ github.ref_name }}
 
       - name: Create manifest list and push
         if: ${{ inputs.push }}
         working-directory: ${{ runner.temp }}/digests
         run: |
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf '${{ env.REGISTRY }}/${{ github.repository }}@sha256:%s ' *)
+            $(printf '${{ env.REGISTRY }}/${{ github.repository }}@sha256:${{ github.ref_name }}' *)
 
       - name: Inspect Image
         if: ${{ inputs.push }}
         run: |
-          docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ github.repository }}:${{ steps.meta.outputs.version }}
+          docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ github.repository }}:${{ github.ref_name }}
 
       - name: Download binaries for release
         if: ${{ startsWith(github.ref, 'refs/tags/') && fromJSON(inputs.release) }}
