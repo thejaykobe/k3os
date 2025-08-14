@@ -4,9 +4,11 @@
 
 # NOTES
 
-I'm still working on migrating the container code to git from docker hub. There are some issues I'm working through, but feel the current release is stable enough to push to production based on my test & production clusters running stable for over a week now.
+I'm still working on migrating the container code to git from docker hub. There are some issues I'm working through, but feel the current release is stable enough to push to production based on my production clusters running stable for over a week now.
 
-In order to upgrade to this version you will have to use the upgrade template here -> https://github.com/thejaykobe/k3os/blob/master/overlay/share/rancher/k3s/server/manifests/system-upgrade-plans/k3os-latest.yaml - you will also have to add or update the label on your nodes with the following info -> k3os.io/upgrade=1.28.15-1.1-production
+In order to upgrade to this version you will have to use the upgrade template here -> https://github.com/thejaykobe/k3os/blob/v1.28.x/overlay/share/rancher/k3s/server/manifests/system-upgrade-plans/k3os-latest.yaml
+
+You will also have to add or update the label on your nodes with the following info -> "kubectl label nodes --all 'k3os.io/upgrade=1.28.15-1.2-production' --overwrite"
 
 # k3OS
 
