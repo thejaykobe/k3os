@@ -16,7 +16,7 @@ env:
   REGISTRY: ghcr.io
   REPO: ${{ github.repository_owner }}
   TAG1: release-candidate
-  TAG2: v1.30.14_k3s2-rc1.5
+  TAG2: v1.30.14_k3s2-rc1.6
 
 permissions:
   contents: write
@@ -160,7 +160,7 @@ jobs:
         if: ${{ inputs.push }}
         working-directory: ${{ runner.temp }}/digests
         run: |
-          docker buildx imagetools create -t ${{ env.TAG1 }} -t ${{ env.TAG2 }} | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+          docker buildx imagetools create -t ${{ env.TAG1 }} -t ${{ env.TAG2 }} <<< "$DOCKER_METADATA_OUTPUT_JSON") \
             $(printf '${{ env.REGISTRY }}/${{ github.repository }}@sha256:%s ' *)
 
       - name: Inspect Image
