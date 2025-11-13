@@ -14,7 +14,9 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  REPO: ${{ github.repository_owner }}
+  REPO: thejaykobe/k3os
+  TAG1: release-candidate
+  TAG2: v1.33.5_k3s1-rc1.0
 
 permissions:
   contents: write
@@ -158,13 +160,13 @@ jobs:
         if: ${{ inputs.push }}
         working-directory: ${{ runner.temp }}/digests
         run: |
-          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+          docker buildx imagetools create -t ${{env.REGISTRY }}/${{ env.REPO }}:${{ env.TAG1 }} -t ${{env.REGISTRY }}/${{ env.REPO }}:${{ env.TAG2 }} <<< "$DOCKER_METADATA_OUTPUT_JSON" \
             $(printf '${{ env.REGISTRY }}/${{ github.repository }}@sha256:%s ' *)
 
       - name: Inspect Image
         if: ${{ inputs.push }}
         run: |
-          docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ github.repository }}:${{ steps.meta.outputs.version }}
+          docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.REPO }}:${{ env.TAG2 }}
 
       - name: Download binaries for release
         if: ${{ startsWith(github.ref, 'refs/tags/') && fromJSON(inputs.release) }}
