@@ -14,7 +14,9 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  REPO: ${{ github.repository_owner }}
+  REPO: thejaykobe/k3os
+  TAG1: release-candidate
+  TAG2: master
 
 permissions:
   contents: write
@@ -38,11 +40,11 @@ jobs:
     env:
       DAPPER_HOST_ARCH: ${{ matrix.architecture }}
     steps:
-      - name: Free up space on build host
-        run: rm -rf /opt/hostedtoolcache
-
       - name: Checkout code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Free up space on build host
+        run: sh ./.github/scripts/free_disk_space.sh
 
       - name: Log into GitHub Container Registry
         if: ${{ inputs.push }}
@@ -119,6 +121,12 @@ jobs:
     runs-on: ubuntu-24.04
     needs: dapper-build
     steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Free up space on build host
+        run: sh ./.github/scripts/free_disk_space.sh
+
       - name: Download digests
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
@@ -152,17 +160,13 @@ jobs:
         if: ${{ inputs.push }}
         working-directory: ${{ runner.temp }}/digests
         run: |
-          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+          docker buildx imagetools create -t ${{env.REGISTRY }}/${{ env.REPO }}:${{ env.TAG1 }} -t ${{env.REGISTRY }}/${{ env.REPO }}:${{ env.TAG2 }} <<< "$DOCKER_METADATA_OUTPUT_JSON" \
             $(printf '${{ env.REGISTRY }}/${{ github.repository }}@sha256:%s ' *)
 
       - name: Inspect Image
         if: ${{ inputs.push }}
         run: |
-          docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ github.repository }}:${{ steps.meta.outputs.version }}
-
-      - name: Checkout code
-        if: ${{ startsWith(github.ref, 'refs/tags/') && fromJSON(inputs.release) }}
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+          docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.REPO }}:${{ env.TAG2 }}
 
       - name: Download binaries for release
         if: ${{ startsWith(github.ref, 'refs/tags/') && fromJSON(inputs.release) }}
