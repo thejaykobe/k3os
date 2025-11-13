@@ -16,7 +16,7 @@ env:
   REGISTRY: ghcr.io
   REPO: ${{ github.repository_owner }}
   TAG1: ghcr.io/thejaykobe/k3os/release-candidate
-  TAG2: ghcr.io/thejaykobe/k3os/v1.30.14_k3s2-rc1.5.3
+  TAG2: ghcr.io/thejaykobe/k3os/v1.30.14_k3s2-rc1.5.4
 
 permissions:
   contents: write
@@ -166,7 +166,7 @@ jobs:
       - name: Inspect Image
         if: ${{ inputs.push }}
         run: |
-          docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ github.repository }}:${{ steps.meta.outputs.version }}
+          docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ github.repository }}:${{ env.TAG2 }}
 
       - name: Download binaries for release
         if: ${{ startsWith(github.ref, 'refs/tags/') && fromJSON(inputs.release) }}
