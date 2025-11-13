@@ -15,8 +15,8 @@ on:
 env:
   REGISTRY: ghcr.io
   REPO: ${{ github.repository_owner }}
-  TAG1: release-candidate
-  TAG2: v1.30.14_k3s2-rc1.5.2
+  TAG1: ghcr.io/thejaykobe/k3os/release-candidate
+  TAG2: ghcr.io/thejaykobe/k3os/v1.30.14_k3s2-rc1.5.3
 
 permissions:
   contents: write
