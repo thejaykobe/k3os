@@ -1,0 +1,66 @@
+---
+# Per-minor upgrade channel for the 1.36.x line.
+#
+# Nodes opt in to this channel with the label:
+#   kubectl label node <name> k3os.io/upgrade=latest-1.36.x --overwrite
+#
+# `version` is a concrete, pinned release tag - there is no channel polling.
+# It is bumped per release by scripts/set-channel-version (driven by the
+# "Update Upgrade Channel" workflow) so the system-upgrade-controller sees a
+# changed version string and rolls the upgrade out to the channel's nodes.
+apiVersion: upgrade.cattle.io/v1
+kind: Plan
+metadata:
+  name: k3os-1-36
+  namespace: k3os-system
+spec:
+  concurrency: 1
+
+  # Pinned release tag for the 1.36.x channel.
+  version: v1.36.0_k3s1-rc1.0
+
+  nodeSelector:
+    matchExpressions:
+      # Only nodes that opted in to the 1.36.x channel.
+      - {key: k3os.io/upgrade, operator: In, values: ["latest-1.36.x"]}
+      - {key: k3os.io/upgrade, operator: NotIn, values: ["disabled"]}
+      # k3OS sets this label; a node without it should not apply this upgrade.
+      - {key: k3os.io/mode, operator: Exists}
+      # Do not attempt to upgrade nodes booted from "live" CDROM.
+      - {key: k3os.io/mode, operator: NotIn, values: ["live"]}
+
+  serviceAccountName: k3os-upgrade
+
+  tolerations:
+    - {key: CriticalAddonsOnly, operator: Exists}
+    - {key: node-role.kubernetes.io/master, effect: NoSchedule, operator: Exists}
+    - {key: node-role.kubernetes.io/control-plane, effect: NoSchedule, operator: Exists}
+    - {key: kubernetes.io/arch, effect: NoSchedule, operator: Equal, value: amd64}
+    - {key: kubernetes.io/arch, effect: NoSchedule, operator: Equal, value: arm64}
+    - {key: kubernetes.io/arch, effect: NoSchedule, operator: Equal, value: arm}
+
+  # The prepare init container runs before cordon/drain, pre-pulling the image
+  # so node unavailability during the drain is minimized.
+  prepare:
+    image: ghcr.io/thejaykobe/k3os:v1.36.0_k3s1-rc1.0
+    command: [k3os, --version]
+    args: []
+
+  drain:
+    deleteLocalData: true
+    ignoreDaemonSets: true
+    force: true
+
+  upgrade:
+    image: ghcr.io/thejaykobe/k3os:v1.36.0_k3s1-rc1.0
+    command: [k3os, --debug]
+    args:
+      - upgrade
+      - --kernel
+      - --rootfs
+      - --remount
+      - --sync
+      - --reboot
+      - --lock-file=/host/run/k3os/upgrade.lock
+      - --source=/k3os/system
+      - --destination=/host/k3os/system
