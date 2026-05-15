@@ -52,8 +52,16 @@ sudo apt-get autoremove -yq
 sudo apt-get clean
 df -h
 echo "Removing large directories"
-# deleting 15GB
-rm -rf /usr/share/dotnet/
-rm -rf /opt/hostedtoolcache/
+sudo rm -rf /usr/share/dotnet/
+sudo rm -rf /opt/hostedtoolcache/
+sudo rm -rf /usr/local/lib/android
+sudo rm -rf /opt/ghc /usr/local/.ghcup
+sudo rm -rf /usr/share/swift
+sudo rm -rf /usr/local/share/powershell
+sudo rm -rf /usr/share/miniconda
+sudo rm -rf /usr/local/share/chromium /usr/local/share/chrome_driver
+df -h
+echo "Pruning preloaded Docker images"
+sudo docker system prune --all --force || true
 df -h
 
