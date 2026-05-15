@@ -1,0 +1,80 @@
+name: Update Upgrade Channel
+
+# Bumps a per-minor upgrade-channel plan
+# (overlay/.../system-upgrade-plans/k3os-<minor>.yaml) to a concrete release
+# tag. Every release branch ships every minor's channel plan, so the bump is
+# fanned out across all v1.<minor>.x branches that carry the file, opening one
+# PR per branch.
+#
+# Run this when cutting a release, BEFORE pushing the release tag, so the
+# image that gets built ships channel plans matching the latest releases.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release tag to pin the channel to (e.g. v1.34.2_k3s1-rc1.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Bump channel across release branches
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+
+          MINOR=$(echo "$VERSION" | sed -nE 's/^v?([0-9]+\.[0-9]+)\..*/\1/p')
+          if [ -z "$MINOR" ]; then
+            echo "could not parse a minor version from '$VERSION'" >&2
+            exit 1
+          fi
+          PLAN="overlay/share/rancher/k3s/server/manifests/system-upgrade-plans/k3os-${MINOR}.yaml"
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch -q origin '+refs/heads/v1.*.x:refs/remotes/origin/v1.*.x'
+
+          BRANCHES=$(git ls-remote --heads origin 'refs/heads/v1.*.x' \
+                     | sed -E 's#.*refs/heads/##' | grep -E '^v1\.[0-9]+\.x$' | sort -V)
+          echo "release branches: ${BRANCHES//$'\n'/ }"
+
+          opened=0
+          for BR in $BRANCHES; do
+            git checkout -q "origin/${BR}"
+            if [ ! -f "$PLAN" ]; then
+              echo "skip ${BR}: does not ship k3os-${MINOR}.yaml"
+              continue
+            fi
+            scripts/set-channel-version "$VERSION"
+            if git diff --quiet -- "$PLAN"; then
+              echo "skip ${BR}: already pinned to ${VERSION}"
+              continue
+            fi
+            WORK="channel-bump/${VERSION}-into-${BR}"
+            git checkout -q -B "$WORK"
+            git add "$PLAN"
+            git commit -q -m "channel: pin ${MINOR}.x to ${VERSION}"
+            if git push -q -u origin "$WORK" 2>/dev/null; then
+              gh pr create --base "$BR" --head "$WORK" \
+                --title "channel: pin ${MINOR}.x to ${VERSION} (${BR})" \
+                --body "Pins the \`${MINOR}.x\` upgrade channel to \`${VERSION}\` on \`${BR}\`. Merge before tagging the release."
+              opened=$((opened+1))
+            else
+              echo "skip ${BR}: bump branch ${WORK} already exists"
+            fi
+          done
+          echo "opened ${opened} PR(s)"

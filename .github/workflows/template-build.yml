@@ -16,7 +16,7 @@ env:
   REGISTRY: ghcr.io
   REPO: thejaykobe/k3os
   TAG1: release-candidate
-  TAG2: v1.34.1_k3s1-rc1.0
+  TAG2: v1.34.7_k3s1-rc1.0
 
 permissions:
   contents: write
@@ -81,6 +81,7 @@ jobs:
           push: ${{ inputs.push }}
 
       - name: Generate Artifact Attestation
+        if: ${{ inputs.push }}
         uses: actions/attest-build-provenance@db473fddc028af60658334401dc6fa3ffd8669fd # v2.3.0
         with:
           subject-name: ${{ env.REGISTRY }}/${{ github.repository }}
@@ -88,12 +89,14 @@ jobs:
           push-to-registry: ${{ inputs.push }}
 
       - name: Export digest
+        if: ${{ inputs.push }}
         run: |
           mkdir -p ${{ runner.temp }}/digests
           digest="${{ steps.push.outputs.digest }}"
           touch "${{ runner.temp }}/digests/${digest#sha256:}"
 
       - name: Upload digest
+        if: ${{ inputs.push }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: digests-linux-${{ ( matrix.architecture == 'arm/v7' && 'arm') || matrix.architecture }}

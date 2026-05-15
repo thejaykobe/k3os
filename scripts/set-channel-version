@@ -1,0 +1,39 @@
+#!/bin/bash
+# Pin a per-minor upgrade-channel plan to a concrete release tag.
+#
+# Usage: scripts/set-channel-version <release-tag>
+#   e.g. scripts/set-channel-version v1.33.12_k3s1-rc1.0
+#
+# Derives the minor (1.33) from the tag and rewrites the `version` and
+# `image` fields of overlay/.../system-upgrade-plans/k3os-<minor>.yaml.
+# Run this when cutting a release, before tagging, so the image that gets
+# built carries a channel plan matching its own version.
+set -e
+
+VERSION=$1
+if [ -z "$VERSION" ]; then
+    echo "usage: $0 <release-tag>" >&2
+    exit 1
+fi
+
+# v1.33.12_k3s1-rc1.0 -> 1.33
+MINOR=$(echo "$VERSION" | sed -nE 's/^v?([0-9]+\.[0-9]+)\..*/\1/p')
+if [ -z "$MINOR" ]; then
+    echo "could not parse a minor version from '$VERSION'" >&2
+    exit 1
+fi
+
+PLANS=$(dirname "$0")/../overlay/share/rancher/k3s/server/manifests/system-upgrade-plans
+PLAN="${PLANS}/k3os-${MINOR}.yaml"
+if [ ! -e "$PLAN" ]; then
+    echo "no channel plan for the ${MINOR}.x line (${PLAN})" >&2
+    echo "create it first by copying an existing k3os-<minor>.yaml" >&2
+    exit 1
+fi
+
+sed -i -E \
+    -e "s|^(  version: ).*|\1${VERSION}|" \
+    -e "s|^(    image: ghcr\.io/thejaykobe/k3os:).*|\1${VERSION}|" \
+    "$PLAN"
+
+echo "pinned k3os-${MINOR}.yaml -> ${VERSION}"

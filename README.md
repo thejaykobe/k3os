@@ -6,9 +6,11 @@
 
 I'm still working on migrating the container code to git from docker hub. There are some issues I'm working through, but feel the current release is stable enough to push to production based on my production clusters running stable for over a week now.
 
-In order to upgrade to this version you will have to use the upgrade template here -> https://github.com/thejaykobe/k3os/blob/v1.28.x/overlay/share/rancher/k3s/server/manifests/system-upgrade-plans/k3os-latest.yaml
+Upgrades are organized into per-minor channels. Every image ships the channel plan for each maintained minor (`k3os-1.33.yaml`, `k3os-1.34.yaml`, `k3os-1.35.yaml`, `k3os-1.36.yaml`) under https://github.com/thejaykobe/k3os/tree/v1.34.x/overlay/share/rancher/k3s/server/manifests/system-upgrade-plans
 
-You will also have to add or update the label on your nodes with the following info -> "kubectl label nodes --all 'k3os.io/upgrade=1.28.15-1.2-production' --overwrite"
+To put a node on a channel, label it with that channel's name -> "kubectl label nodes --all 'k3os.io/upgrade=latest-1.34.x' --overwrite"
+
+Because every image carries every channel, a node can be moved between channels (e.g. `latest-1.33.x` -> `latest-1.34.x`) just by changing that label. Each plan's pinned `version` is bumped per release by `scripts/set-channel-version` (run via the "Update Upgrade Channel" workflow before tagging), which fans the bump out across all release branches so nodes on a channel auto-upgrade as new patches land on that minor.
 
 # k3OS
 
