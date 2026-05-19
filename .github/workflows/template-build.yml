@@ -32,8 +32,6 @@ jobs:
         include:
         - os: [ self-hosted, Linux, X64 ]
           architecture: amd64
-        - os: [ self-hosted, Linux, ARM64 ]
-          architecture: arm64
     runs-on: ${{ matrix.os }}
     env:
       DAPPER_HOST_ARCH: ${{ matrix.architecture }}
