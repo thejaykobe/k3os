@@ -16,7 +16,7 @@ env:
   REGISTRY: ghcr.io
   REPO: thejaykobe/k3os
   TAG1: release-candidate
-  TAG2: v1.30.14_k3s2-rc5.0
+  TAG2: v1.30.14_k3s2-rc5.1
 
 permissions:
   contents: write
