@@ -200,6 +200,31 @@ grow_live()
     fi
 }
 
+fix_cgroup_v2()
+{
+    # k3OS 1.30+ on kernel 5.15 needs cgroup_no_v1=all on the kernel cmdline,
+    # otherwise k3s fails: "failed to find cpu cgroup (v2)". install.sh writes
+    # the arg into grub.cfg on fresh install, but system-upgrade-controller
+    # does not re-run install.sh, so hosts upgraded from older images keep the
+    # old cmdline. Patch grub.cfg in place once and reboot.
+    if grep -q 'cgroup_no_v1=all' /proc/cmdline; then
+        return 0
+    fi
+    if [ ! -f /boot/grub/grub.cfg ]; then
+        return 0
+    fi
+    if grep -q 'cgroup_no_v1=all' /boot/grub/grub.cfg; then
+        return 0
+    fi
+    mount -o remount,rw /boot 2>/dev/null || true
+    sed -i -E '/^[[:space:]]*linux[[:space:]]/ s/$/ cgroup_no_v1=all systemd.unified_cgroup_hierarchy=1/' /boot/grub/grub.cfg
+    sync
+    pinfo "Patched grub.cfg with cgroup_no_v1=all; rebooting for cgroup v2"
+    reboot -f
+    exit 0
+}
+
+fix_cgroup_v2
 setup_mounts
 grow_live
 setup_hostname
