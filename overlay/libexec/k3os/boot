@@ -224,8 +224,8 @@ fix_cgroup_v2()
     exit 0
 }
 
-fix_cgroup_v2
 setup_mounts
+fix_cgroup_v2
 grow_live
 setup_hostname
 setup_hosts
