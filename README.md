@@ -12,6 +12,18 @@ To put a node on a channel, label it with that channel's name -> "kubectl label 
 
 Because every image carries every channel, a node can be moved between channels (e.g. `latest-1.35.x` -> `latest-1.36.x`) just by changing that label. Each plan's pinned `version` is bumped per release by `scripts/set-channel-version` (run via the "Update Upgrade Channel" workflow before tagging), which fans the bump out across all release branches so nodes on a channel auto-upgrade as new patches land on that minor.
 
+## Maintenance lifecycle
+
+This project follows the **k3s release lifecycle**, which in turn tracks the
+upstream **Kubernetes version-skew policy**.
+
+* All branches up to and including `v1.33.x` are **deprecated** and no longer
+  receive updates.
+* Only the currently-supported Kubernetes minors are maintained: `v1.34.x`,
+  `v1.35.x`, `v1.36.x`.
+* Kernel patches and k3s bumps are applied **only to the active branches** as
+  new upstream patches land.
+
 # k3OS
 
 k3OS is a Linux distribution designed to remove as much OS maintenance
