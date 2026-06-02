@@ -44,7 +44,7 @@ setup_services()
         ln -s /etc/init.d/$i /etc/runlevels/sysinit
     done
 
-    for i in acpid hwclock syslog bootmisc hostname sysctl modules connman dbus haveged issue; do
+    for i in acpid hwclock syslog bootmisc hostname sysctl modules connman dbus haveged issue open-vm-tools; do
         ln -s /etc/init.d/$i /etc/runlevels/boot
     done
 
@@ -65,9 +65,6 @@ setup_services()
                 ln -s /etc/init.d/hv_kvp_daemon /etc/runlevels/boot/
                 ln -s /etc/init.d/hv_fcopy_daemon /etc/runlevels/boot/
                 ln -s /etc/init.d/hv_vss_daemon /etc/runlevels/boot/
-                ;;
-            vmw|vmware)
-                ln -s /etc/init.d/open-vm-tools /etc/runlevels/boot/
                 ;;
         esac
     done
