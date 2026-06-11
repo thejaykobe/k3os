@@ -6,3 +6,10 @@ The default mode of k3OS is to run a single node cluster. Use "kubectl"
 to access it. The node token in /var/lib/rancher/k3s/server/node-token
 can be used to join agents to this server.
 
+********************************************************************************
+*  DEPRECATED RELEASE LINE                                                     *
+*  This is the FINAL image released for v1.30.x                                  *
+*  No further kernel, k3s, or security updates will land on this branch.       *
+*  See https://github.com/thejaykobe/k3os#maintenance-lifecycle                *
+********************************************************************************
+
