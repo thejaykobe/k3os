@@ -25,3 +25,13 @@ cat >> /etc/issue << "EOF"
 
 Welcome to k3OS (login with user: rancher)
 EOF
+
+cat >> /etc/issue << 'EOF'
+================================================================================
+  *** DEPRECATED RELEASE LINE (v1.33.x) ***
+  This is the FINAL image released for this minor. No further updates will
+  land on this branch (kernel, k3s, packages, security, or otherwise).
+  Plan to migrate to a currently-supported minor.
+  https://github.com/thejaykobe/k3os#maintenance-lifecycle
+================================================================================
+EOF

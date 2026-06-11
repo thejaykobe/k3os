@@ -1,3 +1,9 @@
+> # :rotating_light: DEPRECATED RELEASE LINE :rotating_light:
+> **`v1.33.x` is end-of-life.** This image is the **final release** for this
+> minor. No further updates (kernel, k3s, security, or otherwise) will land
+> on this branch. See the **Maintenance lifecycle** section for the
+> currently-supported minors.
+
 
 ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/thejaykobe/k3os)
 ![GitHub release (latest SemVer including pre-releases)](https://img.shields.io/github/v/release/thejaykobe/k3os?include_prereleases&label=release&sort=semver)
