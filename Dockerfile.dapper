@@ -9,7 +9,7 @@ RUN if [ "$(go env GOARCH)" = "arm64" ]; then \
     fi
 
 # The docker version in dapper is too old to have buildx. Install it manually.
-RUN curl -sSfL https://github.com/docker/buildx/releases/download/v0.14.1/buildx-v0.14.1.linux-${ARCH//\/v7/64} -o /usr/local/bin/buildx && \
+RUN curl -sSfL https://github.com/docker/buildx/releases/download/v0.35.0/buildx-v0.35.0.linux-${ARCH//\/v7/64} -o /usr/local/bin/buildx && \
     chmod +x /usr/local/bin/buildx
 
 ENV DAPPER_RUN_ARGS --privileged -v /tmp:/tmp -v k3os-pkg:/go/pkg -v k3os-cache:/root/.cache/go-build
