@@ -1,7 +1,7 @@
 ARG ALPINE_VERSION=3.23
 FROM python:3.12.13-alpine${ALPINE_VERSION} AS builder
 
-ARG OCI_CLI_VERSION=3.82.0
+ARG OCI_CLI_VERSION=3.89.0
 RUN apk add --no-cache build-base libffi-dev openssl-dev cargo rust
 
 # Install into a self-contained venv at the final runtime path.
