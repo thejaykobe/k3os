@@ -1,0 +1,88 @@
+name: Promote (retag + release mirror)
+
+# Manually promote an existing RC image to a GA tag by:
+#   1. Adding a new tag to the RC's multi-arch manifest in ghcr (metadata only, no rebuild)
+#   2. Creating a GitHub release at the target git tag with the SAME assets as the RC release
+#
+# The target git tag must already exist (push it from a working tree with `[skip ci]` in
+# the target commit's message so this workflow is the only side-effect of the tag push).
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_tag:
+        description: 'Source (RC) tag, e.g. v1.36.2_k3s1-1.0.2-rc1'
+        required: true
+        type: string
+      target_tag:
+        description: 'Target (GA) tag, e.g. v1.36.2_k3s1-1.0.2'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  promote:
+    runs-on: [ self-hosted, Linux, X64 ]
+    steps:
+      - name: Log into GitHub Container Registry
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker buildx
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
+
+      - name: Retag OCI image (metadata-only, preserves amd64+arm64)
+        env:
+          SRC: ${{ inputs.source_tag }}
+          DST: ${{ inputs.target_tag }}
+          IMG: ghcr.io/${{ github.repository }}
+        run: |
+          set -euo pipefail
+          echo "--- source manifest ($SRC) ---"
+          docker buildx imagetools inspect "$IMG:$SRC"
+          echo "--- adding tag: $DST ---"
+          docker buildx imagetools create -t "$IMG:$DST" "$IMG:$SRC"
+          echo "--- target manifest ($DST) ---"
+          docker buildx imagetools inspect "$IMG:$DST"
+
+      - name: Mirror GitHub release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SRC: ${{ inputs.source_tag }}
+          DST: ${{ inputs.target_tag }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          workdir="$(mktemp -d)"
+          trap "rm -rf '$workdir'" EXIT
+
+          echo "--- verifying target git tag $DST exists on the remote ---"
+          if ! gh api "repos/$REPO/git/ref/tags/$DST" >/dev/null 2>&1; then
+            echo "ERROR: target git tag $DST does not exist on $REPO; push it first" >&2
+            exit 1
+          fi
+
+          echo "--- downloading assets from $SRC ---"
+          gh release download "$SRC" -R "$REPO" -D "$workdir"
+          ls -la "$workdir"
+
+          if gh release view "$DST" -R "$REPO" >/dev/null 2>&1; then
+            echo "--- release $DST already exists; uploading assets (clobber) ---"
+            gh release upload "$DST" -R "$REPO" --clobber "$workdir"/*
+          else
+            echo "--- creating release $DST from tag ---"
+            gh release create "$DST" -R "$REPO" \
+              --title "$DST" \
+              --notes "Promoted from $SRC (identical build; only version label changed)." \
+              "$workdir"/*
+          fi
+
+          echo "--- verifying $DST assets ---"
+          gh release view "$DST" -R "$REPO" --json assets --jq '.assets[].name'
