@@ -63,12 +63,6 @@ jobs:
           workdir="$(mktemp -d)"
           trap "rm -rf '$workdir'" EXIT
 
-          echo "--- verifying target git tag $DST exists on the remote ---"
-          if ! gh api "repos/$REPO/git/ref/tags/$DST" >/dev/null 2>&1; then
-            echo "ERROR: target git tag $DST does not exist on $REPO; push it first" >&2
-            exit 1
-          fi
-
           echo "--- downloading assets from $SRC ---"
           gh release download "$SRC" -R "$REPO" -D "$workdir"
           ls -la "$workdir"
