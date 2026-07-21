@@ -17,7 +17,7 @@ spec:
   concurrency: 1
 
   # Pinned release tag for the 1.35.x channel.
-  version: v1.35.6_k3s1-1.0.3-rc2
+  version: v1.35.6_k3s1-1.0.3-rc3
 
   nodeSelector:
     matchExpressions:
@@ -42,7 +42,7 @@ spec:
   # The prepare init container runs before cordon/drain, pre-pulling the image
   # so node unavailability during the drain is minimized.
   prepare:
-    image: ghcr.io/thejaykobe/k3os:v1.35.6_k3s1-1.0.3-rc2
+    image: ghcr.io/thejaykobe/k3os:v1.35.6_k3s1-1.0.3-rc3
     command: [k3os, --version]
     args: []
 
@@ -52,7 +52,7 @@ spec:
     force: true
 
   upgrade:
-    image: ghcr.io/thejaykobe/k3os:v1.35.6_k3s1-1.0.3-rc2
+    image: ghcr.io/thejaykobe/k3os:v1.35.6_k3s1-1.0.3-rc3
     command: [k3os, --debug]
     args:
       - upgrade
