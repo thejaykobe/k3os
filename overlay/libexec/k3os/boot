@@ -44,7 +44,7 @@ setup_services()
         ln -s /etc/init.d/$i /etc/runlevels/sysinit
     done
 
-    for i in acpid hwclock syslog bootmisc hostname sysctl modules connman dbus haveged issue open-vm-tools; do
+    for i in acpid hwclock syslog bootmisc hostname sysctl modules connman dbus haveged issue open-vm-tools firewall-icmp; do
         ln -s /etc/init.d/$i /etc/runlevels/boot
     done
 
