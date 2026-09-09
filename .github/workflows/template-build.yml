@@ -23,6 +23,7 @@ permissions:
   packages: write
   attestations: write
   id-token: write
+  security-events: write
 
 jobs:
   dapper-build:
@@ -179,3 +180,37 @@ jobs:
         uses: softprops/action-gh-release@da05d552573ad5aba039eaac05058a918a7bf631 # v2.2.2
         with:
           files: ./dist/artifacts/*
+
+  scan:
+    # Grype vulnerability scan of the just-pushed multi-arch image. Runs only
+    # on tag pushes (release images), not on transient master-head builds, so
+    # the Security tab isn't polluted with dev-build findings. Soft-fails so
+    # the release isn't blocked by unavoidable kernel/glibc HIGH CVEs; the
+    # SARIF upload surfaces everything in the Security tab for triage.
+    name: Grype vulnerability scan
+    runs-on: [ self-hosted, Linux, X64 ]
+    needs: merge
+    if: ${{ inputs.push && startsWith(github.ref, 'refs/tags/') }}
+    steps:
+      - name: Log into GitHub Container Registry
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Scan image with Grype
+        id: scan
+        uses: anchore/scan-action@v6
+        with:
+          image: ${{ env.REGISTRY }}/${{ env.REPO }}:${{ env.TAG2 }}
+          fail-build: false
+          severity-cutoff: high
+          output-format: sarif
+
+      - name: Upload SARIF to GitHub Security tab
+        if: ${{ always() && steps.scan.outputs.sarif != '' }}
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{ steps.scan.outputs.sarif }}
+          category: grype-image
