@@ -1,0 +1,58 @@
+#!/sbin/openrc-run
+# CVE-1999-0524 posture: refuse ICMP timestamp (type 13) and address-mask
+# (type 17) queries. Both are deprecated info-disclosure request types
+# with no legitimate use on a Kubernetes node.
+#
+# Installs into the raw table so the drop happens before k3s/kube-proxy's
+# nat/filter chains process the packet and cannot be flushed by kube-proxy
+# resyncs (kube-proxy touches nat/filter, not raw).
+
+description="Drop deprecated ICMP timestamp/address-mask requests"
+
+depend()
+{
+	after sysctl modules
+	before k3s-service
+	need localmount
+}
+
+_add() {
+	local proto="$1" cmd="$2" type="$3"
+	if ! $cmd -w -t raw -C K3OS-ICMP-DROP -p "$proto" --"$proto"-type "$type" -j DROP 2>/dev/null; then
+		$cmd -w -t raw -A K3OS-ICMP-DROP -p "$proto" --"$proto"-type "$type" -j DROP
+	fi
+}
+
+_ensure_chain() {
+	local cmd="$1"
+	$cmd -w -t raw -N K3OS-ICMP-DROP 2>/dev/null || true
+	if ! $cmd -w -t raw -C PREROUTING -j K3OS-ICMP-DROP 2>/dev/null; then
+		$cmd -w -t raw -I PREROUTING 1 -j K3OS-ICMP-DROP
+	fi
+}
+
+start() {
+	ebegin "Installing ICMP timestamp/mask drop rules"
+
+	# IPv4: timestamp-request = type 13, address-mask-request = type 17.
+	if command -v iptables >/dev/null 2>&1; then
+		_ensure_chain iptables
+		_add icmp iptables timestamp-request
+		_add icmp iptables address-mask-request
+	fi
+
+	# IPv6: no timestamp/address-mask requests exist in ICMPv6, so nothing
+	# to add for ip6tables.
+
+	eend 0
+}
+
+stop() {
+	ebegin "Removing ICMP timestamp/mask drop rules"
+	if command -v iptables >/dev/null 2>&1; then
+		iptables -w -t raw -D PREROUTING -j K3OS-ICMP-DROP 2>/dev/null || true
+		iptables -w -t raw -F K3OS-ICMP-DROP 2>/dev/null || true
+		iptables -w -t raw -X K3OS-ICMP-DROP 2>/dev/null || true
+	fi
+	eend 0
+}

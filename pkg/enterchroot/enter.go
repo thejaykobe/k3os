@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"github.com/thejaykobe/k3os/pkg/mount"
-	"github.com/moby/moby/pkg/reexec"
+	"github.com/moby/sys/reexec"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sys/unix"
