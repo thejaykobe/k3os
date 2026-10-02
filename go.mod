@@ -1,8 +1,8 @@
 module github.com/thejaykobe/k3os
 
-go 1.25
+go 1.26
 
-toolchain go1.25.14
+toolchain go1.26.8
 
 require (
 	github.com/ghodss/yaml v1.0.0
