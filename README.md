@@ -4,25 +4,38 @@
 
 # NOTES
 
-I'm still working on migrating the container code to git from docker hub. There are some issues I'm working through, but feel the current release is stable enough to push to production based on my production clusters running stable for over a week now.
-
-Upgrades are organized into per-minor channels. Every image ships the channel plan for each maintained minor (`k3os-1.33.yaml`, `k3os-1.34.yaml`, `k3os-1.35.yaml`, `k3os-1.36.yaml`) under https://github.com/thejaykobe/k3os/tree/v1.36.x/overlay/share/rancher/k3s/server/manifests/system-upgrade-plans
-
-To put a node on a channel, label it with that channel's name -> "kubectl label nodes --all 'k3os.io/upgrade=latest-1.36.x' --overwrite"
-
-Because every image carries every channel, a node can be moved between channels (e.g. `latest-1.35.x` -> `latest-1.36.x`) just by changing that label. Each plan's pinned `version` is bumped per release by `scripts/set-channel-version` (run via the "Update Upgrade Channel" workflow before tagging), which fans the bump out across all release branches so nodes on a channel auto-upgrade as new patches land on that minor.
-
 ## Maintenance lifecycle
 
-This project follows the **k3s release lifecycle**, which in turn tracks the
-upstream **Kubernetes version-skew policy**.
+Each release is tagged on three active branches, one per k3s minor. The actively-maintained set is `v1.34.x`, `v1.35.x`, `v1.36.x`. Earlier minors (`v1.30.x`, `v1.33.x`) are frozen at their final `-1.0.1` tag; nodes still on them see no new upgrades.
 
-* All branches up to and including `v1.33.x` are **deprecated** and no longer
-  receive updates.
-* Only the currently-supported Kubernetes minors are maintained: `v1.34.x`,
-  `v1.35.x`, `v1.36.x`.
-* Kernel patches and k3s bumps are applied **only to the active branches** as
-  new upstream patches land.
+## Per-minor upgrade channels
+
+Every image ships the channel plan for each maintained minor (`k3os-1-34.yaml`, `k3os-1-35.yaml`, `k3os-1-36.yaml`) under [overlay/share/rancher/k3s/server/manifests/system-upgrade-plans](https://github.com/thejaykobe/k3os/tree/v1.36.x/overlay/share/rancher/k3s/server/manifests/system-upgrade-plans). The dashed filenames are required: k3s derives an AddOn name by truncating at the first dot, so `k3os-1.NN.yaml` collapsed into a single `k3os-1` AddOn and the plans clobbered each other on reconcile. Dashes keep each plan's AddOn identity unique.
+
+To put a node on a channel, label it:
+
+    kubectl label nodes --all 'k3os.io/upgrade=latest-1.36.x' --overwrite
+
+Because every image carries every channel, a node can move between channels (e.g. `latest-1.35.x` → `latest-1.36.x`) just by changing that label. Each plan's pinned `version` is bumped per release so nodes on a channel auto-upgrade as new patches land on that minor.
+
+## rancher-system-agent (1.0.6+)
+
+Every image at 1.0.6 and later ships `rancher-system-agent` at `/sbin/rancher-system-agent`, enabled by OpenRC in the `default` runlevel. The service is dormant on fresh installs — it only starts if `/etc/rancher/agent/config.yaml` is present (populated by the Rancher-generated node-registration one-liner, or by cloud-config).
+
+### Why it is here
+
+Rancher-imported clusters had a reboot-regression where the Rancher-rotated CA + cluster-registration token in the `cattle-credentials-*` Secret kept getting clobbered. Root cause: Rancher's import manifest ends up in `/var/lib/rancher/k3s/server/manifests/`, and k3s's AddOn controller re-reconciles files there on every start — replaying the OLD Secret and so breaking `cattle-cluster-agent`'s connection back to Rancher Manager. With `rancher-system-agent` present, CA + token rotation flows as push-model Plans from Rancher Manager through the agent's TLS websocket, so there is no file to replay-clobber.
+
+### Registering a node
+
+Run the registration `curl … | sh` snippet that Rancher Manager generates for the cluster. The snippet writes `/etc/rancher/agent/config.yaml` + `/etc/rancher/agent/cattle-id`, starts the service, and from then on OpenRC re-starts it on every boot; the agent reconnects to Rancher automatically. No re-registration is needed after a reboot or an OS upgrade.
+
+If you have affected nodes already stuck on the old flow, the one-time cleanup is: delete the stale Rancher import manifest from `/var/lib/rancher/k3s/server/manifests/` on each node, then let Rancher Manager push a fresh Plan.
+
+## Grype vulnerability scanning (1.0.3+)
+
+Every tag build runs `anchore/scan-action` against the just-pushed multi-arch image and uploads SARIF to the GitHub Security tab (category `grype-image`). The scan reports findings but does not fail the build; cert-rotating / dep-bumping each release keeps the finding count moving in the right direction.
+
 
 # k3OS
 
