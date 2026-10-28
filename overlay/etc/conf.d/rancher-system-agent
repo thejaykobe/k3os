@@ -1,0 +1,16 @@
+# Config for /etc/init.d/rancher-system-agent (OpenRC)
+#
+# The agent's own YAML config lives at /etc/rancher/agent/config.yaml by
+# default (populated by cloud-config or by the Rancher node-registration
+# curl one-liner). The variables below only control the OpenRC wrapper.
+
+# Log level passed to rancher-system-agent (debug|info|warn|error)
+CATTLE_LOGLEVEL="info"
+
+# Verify agent-side cert pinning strictly (default false matches Rancher's
+# install.sh default; flip to true for environments that want strict TLS).
+CATTLE_AGENT_STRICT_VERIFY="false"
+
+# rc-service controls
+rc_need="net-online"
+rc_want="network-online"
