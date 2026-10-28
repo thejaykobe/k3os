@@ -8,6 +8,10 @@ FROM ${REPO}/k3os-ocicli:${TAG} as ocicli
 
 ARG REPO
 ARG TAG
+FROM ${REPO}/k3os-rancher-agent:${TAG} as rancher_agent
+
+ARG REPO
+ARG TAG
 FROM ${REPO}/k3os-base:${TAG} AS base
 RUN apk --no-cache add \
     virt-what
@@ -17,3 +21,5 @@ COPY --from=awscli /aws-cli-bin/ /bin/
 
 COPY --from=ocicli /usr/bin/oci-cli/ /bin/oci-cli/
 COPY --from=ocicli /oci-cli-bin/ /bin/
+
+COPY --from=rancher_agent /output/rancher-system-agent /sbin/rancher-system-agent

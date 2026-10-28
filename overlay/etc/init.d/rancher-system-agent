@@ -1,0 +1,46 @@
+#!/sbin/openrc-run
+# rancher-system-agent — holds a websocket to Rancher Manager and
+# executes Rancher-issued Plans. With the agent in place, cert and
+# cluster-token rotation flows through Rancher's own control channel
+# instead of relying on file-based import manifests that get replayed
+# by the k3s AddOn controller on every boot (which was the source of
+# the cattle-cluster-agent post-reboot connection loss).
+#
+# The service only starts if /etc/rancher/agent/config.yaml exists;
+# a fresh install with no Rancher binding is a no-op.
+
+description="Rancher System Agent"
+command="/sbin/rancher-system-agent"
+command_args="sentinel"
+command_background=true
+pidfile="/run/rancher-system-agent.pid"
+output_log="/var/log/rancher-system-agent.log"
+error_log="/var/log/rancher-system-agent.log"
+
+: ${CATTLE_AGENT_CONFIG:=/etc/rancher/agent/config.yaml}
+: ${CATTLE_LOGLEVEL:=info}
+: ${CATTLE_AGENT_STRICT_VERIFY:=false}
+export CATTLE_AGENT_CONFIG CATTLE_LOGLEVEL CATTLE_AGENT_STRICT_VERIFY
+
+depend() {
+	after net-online k3s-service
+	use network-online
+	keyword -live
+}
+
+start_pre() {
+	if [ ! -f "$CATTLE_AGENT_CONFIG" ]; then
+		ewarn "No $CATTLE_AGENT_CONFIG; skipping start."
+		ewarn "Populate it via cloud-config or run the Rancher node-registration script."
+		return 1
+	fi
+	checkpath --directory --mode 0755 /var/lib/rancher/agent
+	checkpath --directory --mode 0755 /var/log
+	# Rancher's install.sh writes an env file at this path; honour it.
+	if [ -f /etc/default/rancher-system-agent ]; then
+		# shellcheck disable=SC1091
+		. /etc/default/rancher-system-agent
+		export HTTP_PROXY HTTPS_PROXY NO_PROXY
+	fi
+	return 0
+}
