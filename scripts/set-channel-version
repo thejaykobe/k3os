@@ -24,7 +24,7 @@ if [ -z "$MINOR" ]; then
 fi
 
 PLANS=$(dirname "$0")/../overlay/share/rancher/k3s/server/manifests/system-upgrade-plans
-PLAN="${PLANS}/k3os-${MINOR}.yaml"
+PLAN="${PLANS}/k3os-${MINOR//./-}.yaml"
 if [ ! -e "$PLAN" ]; then
     echo "no channel plan for the ${MINOR}.x line (${PLAN})" >&2
     echo "create it first by copying an existing k3os-<minor>.yaml" >&2
