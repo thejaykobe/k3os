@@ -1,0 +1,58 @@
+name: Stitch multi-arch manifest
+
+# Workaround for a tag ref that landed single-arch in ghcr because the per-arch
+# matrix pushed over the same tag and only `Merge platforms` rewrote TAG1/TAG2
+# (not the tag ref). Given the amd64 and arm64 per-arch index digests from the
+# original dapper-build jobs, this rewrites `target_tag` as a proper multi-arch
+# OCI index that references both platforms + their attestations.
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_tag:
+        description: 'Tag to rewrite as multi-arch, e.g. v1.36.6_k3s1-1.0.7'
+        required: true
+        type: string
+      amd64_digest:
+        description: 'amd64 per-arch index digest (sha256:...) from the dapper-build job'
+        required: true
+        type: string
+      arm64_digest:
+        description: 'arm64 per-arch index digest (sha256:...) from the dapper-build job'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  stitch:
+    runs-on: [ self-hosted, Linux, X64 ]
+    steps:
+      - name: Log into GitHub Container Registry
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker buildx
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
+
+      - name: Stitch multi-arch manifest and inspect
+        env:
+          TGT: ${{ inputs.target_tag }}
+          AMD: ${{ inputs.amd64_digest }}
+          ARM: ${{ inputs.arm64_digest }}
+          IMG: ghcr.io/${{ github.repository }}
+        run: |
+          set -euo pipefail
+          echo "--- source amd64 ($AMD) ---"
+          docker buildx imagetools inspect "$IMG@$AMD"
+          echo "--- source arm64 ($ARM) ---"
+          docker buildx imagetools inspect "$IMG@$ARM"
+          echo "--- stitching to $TGT ---"
+          docker buildx imagetools create -t "$IMG:$TGT" "$IMG@$AMD" "$IMG@$ARM"
+          echo "--- target manifest ($TGT) ---"
+          docker buildx imagetools inspect "$IMG:$TGT"
